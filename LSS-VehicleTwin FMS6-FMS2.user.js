@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         LSS-VehicleTwin FMS6-FMS2
 // @namespace    https://www.leitstellenspiel.de/
-// @version      1.0
+// @version      1.1
 // @description  Schaltet ein Fahrzeug in S6, wenn das andere in S2 geht
 // @author       MissSobol
 // @match        https://www.leitstellenspiel.de/*
@@ -16,8 +16,32 @@ const fahrzeug2ID = '46968798'; // Hier Fahrzeug 2 ID eintragen
 let fahrzeug1Status = '0';
 let fahrzeug2Status = '0';
 
+// Funktion zum Überprüfen der Checkboxen der Fahrzeuge
+function checkVehicleCheckboxes() {
+  const checkbox1 = document.getElementById('vehicle_checkbox_' + fahrzeug1ID);
+  const checkbox2 = document.getElementById('vehicle_checkbox_' + fahrzeug2ID);
+
+  if (checkbox1 && checkbox2 && checkbox1.checked && checkbox2.checked) {
+    // Beide Checkboxen sind ausgewählt
+//    console.log('Beide Fahrzeug-Checkboxen sind ausgewählt. Korrigiere...');
+
+    // Die Checkbox des zweiten Fahrzeugs wird abgewählt
+    checkbox2.checked = false;
+//    console.log(`Fahrzeug ${fahrzeug2ID} Checkbox wurde abgewählt.`);
+
+    // Manuell den "change" Event auslösen, um das System über die Änderung zu informieren
+    const changeEvent = new Event('change', { bubbles: true });
+    checkbox2.dispatchEvent(changeEvent);
+  }
+}
+
 // Funktion zum Klicken auf den Button basierend auf FMS-Status
 function handleFMSStatus(vehicleID, fmsStatus) {
+  if (fahrzeug1Status === '3' && fahrzeug2Status === '3') {
+//    console.log('Beide Fahrzeuge befinden sich bereits im Status 3. Keine Aktion erforderlich.');
+    return;
+  }
+
   const setFMSURL = `https://www.leitstellenspiel.de/vehicles/${vehicleID}/set_fms/${fmsStatus}`;
 
   const xhr = new XMLHttpRequest();
@@ -31,6 +55,13 @@ function handleFMSStatus(vehicleID, fmsStatus) {
   };
   xhr.send();
 }
+
+// Überwachung der Checkboxen bei Änderungen
+document.addEventListener('change', checkVehicleCheckboxes);
+
+// Überwachung der Checkboxen bei Aktualisierungen durch das System
+setInterval(checkVehicleCheckboxes, 1000); // Überprüfung alle 1 Sekunde (kann angepasst werden)
+
 
 
 
